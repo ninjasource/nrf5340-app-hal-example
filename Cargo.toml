@@ -1,0 +1,15 @@
+[package]
+name = "nrf5340-app-hal-demo"
+authors = ["David Haig"]
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cortex-m = "0.7.4"
+cortex-m-rt = { version = "0.7.1", features = ["device"] }
+cortex-m-rtic = { version = "0.5.9", features = ["cortex-m-7"], default-features = false }
+#nrf5340-app-hal = { features = ["rt"], path = "../nrf-hal/nrf5340-app-hal" }
+nrf5340-app-hal = { version = "0.15.0", features = ["rt"] }
+defmt = "0.3.0"
+defmt-rtt = "0.3.1"
+panic-probe = "0.3.0"

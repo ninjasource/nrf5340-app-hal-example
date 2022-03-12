@@ -1,0 +1,27 @@
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']
+# (..)
+rustflags = [
+ # "-C", "linker=flip-link", # adds stack overflow protection
+  "-C", "link-arg=-Tdefmt.x", # defmt support
+  # (..)
+]
+
+[target.thumbv8m.main-none-eabihf]
+runner = "probe-run --chip nRF5340_xxAA"
+rustflags = [
+  # LLD (shipped with the Rust toolchain) is used as the default linker
+  "-C", "link-arg=--nmagic",
+  "-C", "link-arg=-Tlink.x",
+  "-C", "link-arg=-Tdefmt.x",
+
+  # Code-size optimizations.
+  "-C", "inline-threshold=5",
+  "-C", "no-vectorize-loops",
+]
+
+[build]
+# cross-compile to this target
+target = "thumbv8m.main-none-eabihf"
+
+[env]
+DEFMT_LOG="info"
