@@ -73,7 +73,6 @@ const APP: () = {
         // the app core is also called the "non-secure" core, hence "NS"
         let p0 = hal::gpio::p0::Parts::new(p.P0_NS);
         let led = p0.p0_28.into_push_pull_output(Level::High).degrade();
-
         /*
         // setup spi master mode
         let _cs_grey = p0.p0_18.into_push_pull_output(Level::High).degrade();
