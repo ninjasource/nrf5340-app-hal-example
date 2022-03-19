@@ -75,7 +75,7 @@ const APP: () = {
         let led = p0.p0_28.into_push_pull_output(Level::High).degrade();
 
         /*
-        // setup spi master mode - this panics :(
+        // setup spi master mode
         let _cs_grey = p0.p0_18.into_push_pull_output(Level::High).degrade();
         let sck_purple = p0.p0_17.into_push_pull_output(Level::Low).degrade();
         let mosi_blue = p0.p0_14.into_push_pull_output(Level::Low).degrade();
@@ -85,7 +85,7 @@ const APP: () = {
             mosi: Some(mosi_blue),
             miso: Some(miso_green),
         };
-        let _spi = Spim::new(p.SPIM0_NS, pins, Frequency::M2, MODE_0, 0);
+        let _spi = Spim::new(p.SPIM0_NS, pins, Frequency::M2, MODE_0, 0); // this panics!!
         */
 
         init::LateResources { led }
