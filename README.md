@@ -24,7 +24,7 @@ Install probe-run 0.3
 $ cargo install probe-run
 ```
 
-If probe-run fails (e.g. `Error: A core architecture specific error occured`), run this to prepare the nrf5340 to be flashed:
+If probe-run fails (e.g. `Error: A core architecture specific error occurred`), run this to prepare the nrf5340 to be flashed:
 https://github.com/diondokter/nRF53-recovery
 It needs to be run every time the nRF5340 is power cycled it seems. At least until probe-run is fixed at some point in the future.
 

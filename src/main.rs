@@ -7,9 +7,11 @@ use hal::{
     gpio::{Level, Output, Pin, PushPull},
     pac::Peripherals,
     prelude::OutputPin,
+    spim::{Frequency, MODE_0},
+    Spim,
 };
 use nrf5340_app_hal as hal;
-use panic_probe as _; // panic magic
+use panic_halt as _;
 
 // This achieves the same result as the bootloader suggested in the nrf5340_app_hal docs
 // The code below comes from https://github.com/Dirbaio/nrf53-test
@@ -69,8 +71,21 @@ const APP: () = {
         unlock_nrf5340_app_core(&mut p);
 
         // the app core is also called the "non-secure" core, hence "NS"
-        let port0 = hal::gpio::p0::Parts::new(p.P0_NS);
-        let led = port0.p0_28.into_push_pull_output(Level::High).degrade();
+        let p0 = hal::gpio::p0::Parts::new(p.P0_NS);
+        let led = p0.p0_28.into_push_pull_output(Level::High).degrade();
+
+        // setup spi master mode
+        let _cs_grey = p0.p0_18.into_push_pull_output(Level::High).degrade();
+        let sck_purple = p0.p0_17.into_push_pull_output(Level::Low).degrade();
+        let mosi_blue = p0.p0_14.into_push_pull_output(Level::Low).degrade();
+        let miso_green = p0.p0_15.into_floating_input().degrade();
+        let pins = hal::spim::Pins {
+            sck: sck_purple,
+            mosi: Some(mosi_blue),
+            miso: Some(miso_green),
+        };
+        let _spi = Spim::new(p.SPIM0_NS, pins, Frequency::M2, MODE_0, 0);
+
         init::LateResources { led }
     }
 
@@ -86,8 +101,3 @@ const APP: () = {
         }
     }
 };
-
-#[defmt::panic_handler]
-fn defmt_panic() -> ! {
-    cortex_m::asm::udf();
-}
