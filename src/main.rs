@@ -2,77 +2,43 @@
 #![no_main]
 
 use defmt::info;
-use defmt_rtt as _; // global logger
+use defmt_rtt as _;
 use hal::{
-    gpio::{Level, Output, Pin, PushPull},
-    pac::Peripherals,
-    prelude::OutputPin,
-    spim::{Frequency, MODE_0},
-    Spim,
+    clocks::Clocks,
+    gpio::{Pin, PinMode, Port},
+    low_power,
+    timer::{Timer, TimerInterrupt},
 };
-use nrf5340_app_hal as hal;
+// global logger
+//use nrf5340_app_hal as hal;
 use panic_halt as _;
-
-// This achieves the same result as the bootloader suggested in the nrf5340_app_hal docs
-// The code below comes from https://github.com/Dirbaio/nrf53-test
-fn unlock_nrf5340_app_core(p: &mut Peripherals) {
-    p.CACHE_S.enable.write(|w| w.enable().enabled());
-    p.CLOCK_S.hfclkctrl.write(|w| w.hclk().div1());
-
-    if !p.UICR_S.approtect.read().pall().is_unprotected() {
-        info!("Setting UICR.APPROTECT=Unprotected");
-        p.NVMC_S.config.write(|w| w.wen().wen());
-        while p.NVMC_S.ready.read().bits() == 0 {}
-        p.UICR_S.approtect.write(|w| w.pall().unprotected());
-        while p.NVMC_S.ready.read().bits() == 0 {}
-        p.NVMC_S.config.write(|w| w.wen().ren());
-    }
-
-    if !p.UICR_S.secureapprotect.read().pall().is_unprotected() {
-        info!("Setting UICR.SECUREAPPROTECT=Unprotected");
-        p.NVMC_S.config.write(|w| w.wen().wen());
-        while p.NVMC_S.ready.read().bits() == 0 {}
-        p.UICR_S.secureapprotect.write(|w| w.pall().unprotected());
-        while p.NVMC_S.ready.read().bits() == 0 {}
-        p.NVMC_S.config.write(|w| w.wen().ren());
-    }
-
-    p.CTRLAP_S
-        .approtect
-        .disable
-        .write(|w| unsafe { w.bits(0x50FA50FA) });
-    p.CTRLAP_S
-        .secureapprotect
-        .disable
-        .write(|w| unsafe { w.bits(0x50FA50FA) });
-
-    p.SPU_S.periphid[66]
-        .perm
-        .write(|w| w.secattr().non_secure());
-    p.SPU_S.gpioport[0].perm.write(|w| unsafe { w.bits(0) });
-
-    p.P0_S.pin_cnf[29].write(|w| w.mcusel().network_mcu());
-
-    // Boot network core
-    p.RESET_S.network.forceoff.write(|w| w.forceoff().release());
-}
+use stm32_hal2 as hal;
 
 #[rtic::app(device = crate::hal::pac, peripherals = true, monotonic = rtic::cyccnt::CYCCNT)]
 const APP: () = {
     struct Resources {
-        led: Pin<Output<PushPull>>,
+        led: Pin,
     }
 
     #[init()]
     fn init(ctx: init::Context) -> init::LateResources {
-        info!("init app core");
+        info!("init");
 
-        let mut p = ctx.device;
-        unlock_nrf5340_app_core(&mut p);
+        //let mut p = ctx.device;
 
         // the app core is also called the "non-secure" core, hence "NS"
-        let p0 = hal::gpio::p0::Parts::new(p.P0_NS);
-        let led = p0.p0_28.into_push_pull_output(Level::High).degrade();
+        //let p0 = hal::gpio::p0::Parts::new(p.P0_NS);
+        //let p0 = hPin
+
+        let clock_cfg = Clocks::default();
+        clock_cfg.setup().unwrap();
+
+        let dp = ctx.device;
+        let mut timer = Timer::new_tim1(dp.TIM1, 0.2, Default::default(), &clock_cfg);
+        timer.enable_interrupt(TimerInterrupt::Update);
+
+        let led = Pin::new(Port::C, 7, PinMode::Output);
+        //let led = p0.p0_28.into_push_pull_output(Level::High).degrade();
         /*
         // setup spi master mode
         let _cs_grey = p0.p0_18.into_push_pull_output(Level::High).degrade();
@@ -95,9 +61,9 @@ const APP: () = {
         let idle::Resources { led } = ctx.resources;
 
         loop {
-            led.set_high().unwrap();
+            led.set_high();
             cortex_m::asm::delay(20_000_000);
-            led.set_low().unwrap();
+            led.set_low();
             cortex_m::asm::delay(20_000_000);
         }
     }

@@ -1,27 +1,23 @@
 [target.'cfg(all(target_arch = "arm", target_os = "none"))']
-# (..)
+# Change this runner as required for your MCU.
+runner = "probe-run --chip STM32L552ZETxQ" # to list chips, run `probe-run --list-chips.`
 rustflags = [
- # "-C", "linker=flip-link", # adds stack overflow protection
-  "-C", "link-arg=-Tdefmt.x", # defmt support
-  # (..)
-]
-
-[target.thumbv8m.main-none-eabihf]
-runner = "probe-run --chip nRF5340_xxAA"
-rustflags = [
-  # LLD (shipped with the Rust toolchain) is used as the default linker
-  "-C", "link-arg=--nmagic",
+  "-C", "linker=flip-link",
   "-C", "link-arg=-Tlink.x",
   "-C", "link-arg=-Tdefmt.x",
-
-  # Code-size optimizations.
-  "-C", "inline-threshold=5",
-  "-C", "no-vectorize-loops",
+  # This is needed if your flash or ram addresses are not aligned to 0x10000 in memory.x
+  # See https://github.com/rust-embedded/cortex-m-quickstart/pull/95
+  "-C", "link-arg=--nmagic",
 ]
 
 [build]
 # cross-compile to this target
+#target = "thumbv7em-none-eabihf" # = ARM Cortex-M4
 target = "thumbv8m.main-none-eabihf"
 
 [env]
 DEFMT_LOG="info"
+
+
+# echo hello > /dev/ttyUSB0
+# stty -F /dev/ttyUSB0 115200
