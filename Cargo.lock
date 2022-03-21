@@ -338,8 +338,7 @@ checksum = "546c37ac5d9e56f55e73b677106873d9d9f5190605e41a856503623648488cae"
 [[package]]
 name = "nrf-hal-common"
 version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dedf20b0ce25f6fe49b1ac9c541c022d5fc2acf2751fe67550166f5cda89c011"
+source = "git+https://github.com/ninjasource/nrf-hal.git?branch=nrf5340-s#6b51b8013a15d6186563a6a1a3500312c40b1884"
 dependencies = [
  "cast",
  "cfg-if",
@@ -357,8 +356,7 @@ dependencies = [
 [[package]]
 name = "nrf5340-app-hal"
 version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5681a08b8899a88e6fbdff6416cf2fd9b05e8782b3d65a66b34857d0d485a6e1"
+source = "git+https://github.com/ninjasource/nrf-hal.git?branch=nrf5340-s#6b51b8013a15d6186563a6a1a3500312c40b1884"
 dependencies = [
  "embedded-hal",
  "nrf-hal-common",
@@ -366,7 +364,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "nrf5340-app-hal-demo"
+name = "nrf5340-app-hal-example"
 version = "0.1.0"
 dependencies = [
  "cortex-m",
@@ -375,7 +373,7 @@ dependencies = [
  "defmt",
  "defmt-rtt",
  "nrf5340-app-hal",
- "panic-halt",
+ "panic-probe",
 ]
 
 [[package]]
@@ -390,10 +388,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "panic-halt"
-version = "0.2.0"
+name = "panic-probe"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de96540e0ebde571dc55c73d60ef407c653844e6f9a1e2fdbd40c07b9252d812"
+checksum = "3ab1f00eac22bd18f8e5cae9555f2820b3a0c166b5b556ee3e203746ea6dcf3a"
+dependencies = [
+ "cortex-m",
+ "defmt",
+]
 
 [[package]]
 name = "proc-macro-error"

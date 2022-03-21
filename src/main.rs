@@ -8,14 +8,15 @@ use hal::{
     pac::Peripherals,
     prelude::OutputPin,
     spim::{Frequency, MODE_0},
-    Spim,
+    Clocks, Spim,
 };
 use nrf5340_app_hal as hal;
-use panic_halt as _;
+use panic_probe as _;
 
 // This achieves the same result as the bootloader suggested in the nrf5340_app_hal docs
+// At least enough to blink an LED
 // The code below comes from https://github.com/Dirbaio/nrf53-test
-fn unlock_nrf5340_app_core(p: &mut Peripherals) {
+fn _enable_ns_on_app_core(p: &mut Peripherals) {
     p.CACHE_S.enable.write(|w| w.enable().enabled());
     p.CLOCK_S.hfclkctrl.write(|w| w.hclk().div1());
 
@@ -65,15 +66,23 @@ const APP: () = {
 
     #[init()]
     fn init(ctx: init::Context) -> init::LateResources {
-        info!("init app core");
-
+        /*
+        // to enable uncomment this in cargo.toml: nrf5340-app-hal = { version = "0.15.0", features = ["rt"] }
+        info!("init app core in ns mode");
         let mut p = ctx.device;
-        unlock_nrf5340_app_core(&mut p);
-
-        // the app core is also called the "non-secure" core, hence "NS"
+        _enable_ns_on_app_core(&mut p);
         let p0 = hal::gpio::p0::Parts::new(p.P0_NS);
         let led = p0.p0_28.into_push_pull_output(Level::High).degrade();
-        /*
+        */
+
+        info!("init app core in s mode");
+        let p = ctx.device;
+        let clocks = Clocks::new(p.CLOCK_S);
+        let _clocks = clocks.enable_ext_hfosc();
+
+        let p0 = hal::gpio::p0::Parts::new(p.P0_S);
+        let led = p0.p0_28.into_push_pull_output(Level::High).degrade();
+
         // setup spi master mode
         let _cs_grey = p0.p0_18.into_push_pull_output(Level::High).degrade();
         let sck_purple = p0.p0_17.into_push_pull_output(Level::Low).degrade();
@@ -84,8 +93,7 @@ const APP: () = {
             mosi: Some(mosi_blue),
             miso: Some(miso_green),
         };
-        let _spi = Spim::new(p.SPIM0_NS, pins, Frequency::M2, MODE_0, 0); // this panics!!
-        */
+        let _spi = Spim::new(p.SPIM0_S, pins, Frequency::M2, MODE_0, 0);
 
         init::LateResources { led }
     }
